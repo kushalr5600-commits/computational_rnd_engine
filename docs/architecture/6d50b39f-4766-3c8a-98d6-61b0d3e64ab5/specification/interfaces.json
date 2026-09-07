@@ -1,0 +1,32 @@
+{
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "parameters": [
+    {
+      "description": "On-chip datapath interconnect width.",
+      "field_type": "integer",
+      "legal_max": 4096,
+      "legal_min": 32,
+      "name": "interconnect_width",
+      "path": "structure.interconnect_width",
+      "provenance": {},
+      "source": "design.structure.interconnect_width",
+      "unit": "bit",
+      "value": 1024
+    },
+    {
+      "description": "Parallel replicated blocks.",
+      "field_type": "integer",
+      "legal_max": 1024,
+      "legal_min": 1,
+      "name": "parallel_blocks",
+      "path": "hardware.parallel_blocks",
+      "provenance": {},
+      "source": "design.hardware.parallel_blocks",
+      "unit": "block",
+      "value": 64
+    }
+  ],
+  "section": "interfaces",
+  "source": "design.structure + design.hardware",
+  "title": "Interfaces & Interconnect"
+}

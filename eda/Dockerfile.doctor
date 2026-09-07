@@ -1,0 +1,4 @@
+FROM rnd-engine-eda:signoff-final
+RUN pip3 install --no-cache-dir pydantic pyyaml click 2>&1 || true
+COPY scripts/sitecustomize.py /tmp/sitecustomize.py
+ENV PYTHONPATH=/tmp

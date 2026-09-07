@@ -1,0 +1,9 @@
+# RTL simulation flow (§11). Compile the generated testbench + candidate RTL
+# with iverilog then run with vvp; verilator is the alternative engine.
+flow: simulation
+tool: iverilog
+engine: iverilog
+timeout_s: 600
+compile_options: [-g2012, -s, tb_top]
+run_tool: vvp
+alt_engine: verilator

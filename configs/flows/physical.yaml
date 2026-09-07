@@ -1,0 +1,7 @@
+# Physical implementation flow (§14). OpenROAD stages over the SKY130 config.
+flow: physical
+tool: openroad
+engine: openroad
+timeout_s: 1800
+stages: [floorplan, placement, cts, routing, gds]
+metrics: [die_area_um2, core_area_um2, utilization, wirelength, congestion, cell_count, wns_ns, tns_ns, routing_violations, runtime_s]

@@ -1,0 +1,56 @@
+# EDA toolchain versions — pinned, discovered during implementation
+# This file is authoritative for reproducibility. Any change here changes
+# toolchain_hash, which changes experiment identity (§22).
+#
+# Format: tool = version @ source_identifier (checksum when practical)
+#
+# Last updated: 2026-09-04
+# Profile: sky130A
+# Status: COMPLETE — all tools installed, verified, and functional
+#         sky130A PDK prebuilt tarball (open_pdks CI build 10010) is INSTALLED
+#         at /usr/local/share/pdk/sky130A (872 MB) and VERIFIED by a full
+#         yosys+OpenROAD PnR smoke (counter8): route complete, 0 DRC / 0 antenna,
+#         hold +0.371 / setup +7.723 / TNS 0.
+#         magic 8.3.305 INSTALLED (prebuilt) — banner "Version 8.3 revision 305,
+#         Compiled May 23 2022" + sky130A.tech load verified.
+#         netgen 1.5.265 BUILT from source — banner verified.
+#         klayout 0.29.11 BUILT from source (v0.29.11 tarball) — banner verified.
+
+
+[versions]
+verilator = 5.018 @ github.com/verilator/verilator (git tag v5.018)
+iverilog = 12_0 @ github.com/steveicarus/iverilog (git branch v12_0)
+yosys = 0.38 @ github.com/YosysHQ/yosys (git tag yosys-0.38)
+abc = HEAD @ github.com/YosysHQ/abc (git clone, no tag)
+sby = HEAD @ github.com/YosysHQ/sby (git clone, no tag)
+openroad = 1 (GITDIR-NOTFOUND; v2.0-era master commit 4feaf99, Jul 2021) @ github.com/The-OpenROAD-Project/OpenROAD source zip; built with fmt8 enum shim patch
+opensta = 2.3.0 @ github.com/The-OpenROAD-Project/OpenSTA commit 37cd1fc6be104587f5f99f3979c2c5346c9d949f (2021-07-14), bundled with OpenROAD
+magic = 8.3.305-0-g4f5e1ae @ skywater CI prebuilt binary (open_pdks build 10010 magic.tar.xz, sha256 a8ca967b6962c3d84d5d6adc...) — INSTALLED+VERIFIED
+netgen = 1.5.265 @ github.com/RTimothyEdwards/netgen tag 1.5.265, commit 93b9cf65778d3094e54f4acf937402b07bdb98b8 — BUILT from source, VERIFIED
+open_pdks = v1.0.310-0-gd7faec2 @ github.com/RTimothyEdwards/open_pdks (used only as prebuilt CI artifact, not built locally)
+klayout = 0.29.11 @ github.com/KLayout/klayout tag v0.29.11 (source build; .deb unavailable on klayout.org — 404 all variants) — INSTALLED+VERIFIED
+
+[profile]
+name = sky130A
+pdk_target = sky130A
+pdk_name = sky130
+pdk_version = v0.0.0-337-g5a57f50 (SKY130A v9.3.615-374) @ github.com/google/skywater-pdk; prebuilt via open_pdks v1.0.310-0-gd7faec2 CI build 10010 (2022-05-23)
+pdk_root_env = PDK_ROOT
+
+[metadata]
+# These fields are populated by eda-doctor once the environment is operational.
+resolved_verilator_path =
+resolved_verilator_version =
+resolved_yosys_path =
+resolved_yosys_version =
+resolved_openroad_path = /opt/openroad/bin/openroad (inside rnd-engine-eda:with-openroad)
+resolved_openroad_version = 1 (GITDIR-NOTFOUND; commit 4feaf99, Jul 2021)
+resolved_magic_path = /usr/bin/magic (wrapper; real ELF /usr/lib/magic/tcl/magicdnull) inside signoff-builder / derived image
+resolved_magic_version = 8.3.305 (banner: "Version 8.3 revision 305, Compiled Mon May 23 08:19:21 UTC 2022")
+resolved_netgen_path = /usr/local/bin/netgen
+resolved_netgen_version = 1.5.265
+resolved_klayout_path = /usr/local/bin/klayout (inside rnd-engine-eda:signoff-final)
+resolved_klayout_version = 0.29.11
+resolved_pdk_root = /usr/local/share/pdk/sky130A (inside rnd-engine-eda:signoff-final)
+resolved_pdk_tree_hash =
+toolchain_hash_pending = true

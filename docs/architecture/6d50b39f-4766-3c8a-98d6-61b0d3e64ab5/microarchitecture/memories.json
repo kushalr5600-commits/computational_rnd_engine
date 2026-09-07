@@ -1,0 +1,60 @@
+{
+  "caches": [
+    {
+      "capacity_kb": 64,
+      "derived_from": [
+        "structure.l1_kb",
+        "structure.cache_line_bytes"
+      ],
+      "instantiated": true,
+      "level": "L1",
+      "line_bytes": 32,
+      "name": "l1",
+      "rule": "L1 capacity and line from spec; associativity scaled by capacity",
+      "sets": 512,
+      "ways": 4
+    },
+    {
+      "capacity_kb": 512,
+      "derived_from": [
+        "structure.l2_kb",
+        "structure.cache_line_bytes"
+      ],
+      "instantiated": true,
+      "level": "L2",
+      "line_bytes": 32,
+      "name": "l2",
+      "rule": "L2 capacity and line from spec",
+      "sets": 2048,
+      "ways": 8
+    },
+    {
+      "capacity_kb": 65536,
+      "derived_from": [
+        "structure.l3_kb",
+        "structure.cache_line_bytes"
+      ],
+      "instantiated": true,
+      "level": "L3",
+      "line_bytes": 32,
+      "name": "l3",
+      "rule": "L3 instantiated only when spec L3 capacity > 0",
+      "sets": 131072,
+      "ways": 16
+    }
+  ],
+  "controllers": [
+    {
+      "channels": 3,
+      "derived_from": [
+        "structure.memory_channels",
+        "structure.interconnect_width"
+      ],
+      "instantiated": true,
+      "kind": "dram",
+      "name": "memory_controller",
+      "rule": "DRAM controller with memory_channels channels",
+      "width_bits": 1024
+    }
+  ]
+}

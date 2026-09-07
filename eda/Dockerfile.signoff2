@@ -1,0 +1,10 @@
+FROM rnd-engine-eda:signoff
+# Install Python deps for eda-doctor
+RUN pip3 install --no-cache-dir pydantic pyyaml
+# Copy project into image so eda-doctor can run standalone
+WORKDIR /work
+COPY rnd_engine/ /work/rnd_engine/
+COPY configs/ /work/configs/
+COPY pyproject.toml /work/ 2>/dev/null || true
+RUN cd /work/rnd_engine && pip3 install --no-deps -e . 2>/dev/null || pip3 install --no-deps --no-cache-dir . 2>/dev/null || true
+CMD ["python3", "-m", "rnd_engine.cli", "eda-doctor"]

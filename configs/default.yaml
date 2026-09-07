@@ -1,0 +1,87 @@
+# Machine-independent defaults for the EDA bootstrap layer (Phase B fix of the
+# empty-configs policy debt). Flow parameters — tool executables, options,
+# security limits, PDK layout, fidelity ladder — live HERE, never hardcoded in
+# Python. Machine-specific paths may override binaries via the env_override
+# variables (PDK_ROOT / EDA_ROOT / *_BIN) at resolve time; once resolved the
+# configuration is deterministic and hashed.
+schema_version: 1
+
+# --- external tools ---------------------------------------------------------
+# binary: default executable name; env_override: optional env var that replaces
+# the binary path on this machine; kind: role the tool plays in the pipeline.
+tools:
+  verilator: {binary: verilator, env_override: VERILATOR_BIN, kind: rtl}
+  iverilog:  {binary: iverilog,  env_override: IVERILOG_BIN,  kind: rtl}
+  vvp:       {binary: vvp,       env_override: VVP_BIN,       kind: rtl}
+  yosys:     {binary: yosys,     env_override: YOSYS_BIN,     kind: synthesis}
+  abc:       {binary: abc,       env_override: ABC_BIN,       kind: synthesis}
+  sby:       {binary: sby,       env_override: SBY_BIN,       kind: formal}
+  openroad:  {binary: openroad,  env_override: OPENROAD_BIN,  kind: physical}
+  opensta:   {binary: opensta,   env_override: OPENSTA_BIN,   kind: sta}
+  magic:     {binary: magic,     env_override: MAGIC_BIN,     kind: drc}
+  netgen:    {binary: netgen,    env_override: NETGEN_BIN,    kind: lvs}
+  klayout:   {binary: klayout,   env_override: KLAYOUT_BIN,   kind: drc}
+  ghdl:      {binary: ghdl,      env_override: GHDL_BIN,      kind: rtl}
+
+# Container/WSL execution (the edged flow driver runs under Linux; on the bare
+# Windows host these stay BLOCKED unless a docker/podman/wsl runtime exists).
+runtime:
+  docker: {binary: docker, enabled: true, vector: "eda/"}
+  podman: {binary: podman, enabled: false}
+  wsl:    {binary: wsl, enabled: false}
+
+# --- security (mandated by the bootstrapping plan §23) ----------------------
+security:
+  default_timeout_s: 600
+  max_output_bytes: 1048576
+  max_log_bytes: 2097152
+  allow_network: false
+  read_only_pdk: true
+  isolate_workdir: true
+  # Only these environment variables are propagated to EDA subprocesses. The
+  # runner builds a controlled env (PATH + allowlist) and never inherits the
+  # parent process environment wholesale.
+  env_allowlist: [PDK_ROOT, PDK, EDA_ROOT, HOME, TMP, TEMP]
+
+# --- per-flow configuration -------------------------------------------------
+# options reach the tool as-is (argv array appended to the binary). Engine
+# names select the command builder in rnd_engine/flow.py.
+flows:
+  lint:       {tool: verilator, engine: verilator,  timeout_s: 600,  options: [--lint-only, --top-module, top, -Wno-MULTIDRIVEN, -Wno-WIDTHTRUNC, -Wno-WIDTHEXPAND]}
+  simulation: {tool: iverilog,  engine: iverilog,   timeout_s: 600,  compile_options: [-g2012, -s, tb_top], run_tool: vvp}
+  formal:     {tool: yosys,     engine: yosys,      timeout_s: 900}
+  synthesis:  {tool: yosys,     engine: yosys,      timeout_s: 900,  abc: true}
+  physical:   {tool: openroad,  engine: openroad,   timeout_s: 1800}
+  sta:        {tool: opensta,   engine: opensta,    timeout_s: 900}
+  power:      {tool: openroad,  engine: openroad,   timeout_s: 1800}
+  drc:        {tool: magic,     engine: magic,      timeout_s: 1800}
+  lvs:        {tool: netgen,    engine: netgen,     timeout_s: 1800}
+
+# --- PDK layout expectations -------------------------------------------------
+# required_paths are checked by eda-doctor relative to PDK_ROOT/<target>.
+pdk:
+  target: sky130A
+  read_only: true
+  required_paths:
+    - libs.ref/sky130_fd_sc_hd/lef
+    - libs.ref/sky130_fd_sc_hd/lib
+    - libs.ref/sky130_fd_sc_hd/gds
+    - libs.ref/sky130_fd_sc_hd/spice
+    - libs.tech/magic
+    - libs.tech/netgen
+    - libs.tech/klayout
+
+# --- fidelity promotion ladder (§20) ----------------------------------------
+fidelity:
+  promotion:
+    SURROGATE: 1000
+    RTL: 100
+    SYNTHESIS: 20
+    PHYSICAL: 5
+    SIGNOFF: 2
+
+# --- artifact layout ----------------------------------------------------------
+artifacts:
+  root: artifacts
+  workdir_template: "work/{design_id}/{stage}"
+  reports: reports

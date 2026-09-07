@@ -1,0 +1,34 @@
+{
+  "architecture_schema_version": 1,
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "files": {
+    "clock_reset": {
+      "file": "clock_reset.json",
+      "sha256": "5116465f46d6a4b7d57679fc9bd78a83674398a0986fe4d7492193260abaa88e"
+    },
+    "control": {
+      "file": "control.json",
+      "sha256": "07dc7ad42da691c0c2eb7f98dffbae35063f5d7155715d6ed48ec401f2ddee1d"
+    },
+    "datapaths": {
+      "file": "datapaths.json",
+      "sha256": "0d680dcf63133da04c057693ddc000ef3dd39df363b25f2638df570b68903dc0"
+    },
+    "interfaces": {
+      "file": "interfaces.json",
+      "sha256": "d0b4e4ff0d50706992e15377527cb6176c951692ebd77d5a4985c498a41e4290"
+    },
+    "memories": {
+      "file": "memories.json",
+      "sha256": "7a6084b46c65261f562aa4d662a09a5dc9be965d93e83deaf9147c1e54b9a682"
+    },
+    "pipeline": {
+      "file": "pipeline.json",
+      "sha256": "8264d8fad75cd085ef38a0e45eda3a415529c412206fc7ef72800a8b9d23125f"
+    }
+  },
+  "generator_version": "1.0.0",
+  "microarchitecture_hash": "74ecabe918dbdf818e0be857ade24f0f",
+  "microarchitecture_schema_version": 1,
+  "specification_hash": "0edf41603bf572bf288b161975cb95b8"
+}

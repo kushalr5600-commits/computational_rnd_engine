@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+.venv-1/
+
+# IDE
+.vscode/
+.idea/
+
+# Pytest / Ruff
+.pytest_cache/
+.ruff_cache/
+
+# Artifacts (generated output)
+artifacts/
+
+# EDA large binaries (keep directory, ignore large files)
+eda/openroad-source.zip
+eda/pdk_downloads/*.tar.gz
+eda/pdk_downloads/*.tar.xz
+eda/pdk_downloads/*.zip
+eda/*.log
+eda/doctor_run*.log
+eda/final_verify.log
+
+# Logs / temp files
+*.log
+*.out
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Binary archives
+handoff.zip
+
+# HTML docs (generated)
+klayout_*.html
+
+# Backup files
+*.bak*
+*.bak_*
+
+# Temp/debug scripts
+fix_arrays.py
+verify_hashes.py
+check_tools_wsl.sh
+signoff_tools.txt
+tool_check.txt
+image_history.txt
+abc.history
+
+# Log files with unicode names
+_*.log*
+
+# EDA script artifacts
+eda/scripts/fix_2d*.py
+eda/scripts/fix_2d*report.txt
+eda/scripts/dump2d.py
+eda/scripts/rtl*.txt
+eda/scripts/regenerate_all.py
+eda/scripts/run_cli.py
+eda/scripts/flatten_rtl_arrays.py
+eda/scripts/generator.py.bak*
+eda/scripts/tpl_backup/
+eda/scripts/*.out
+eda/scripts/sitecustomize.py

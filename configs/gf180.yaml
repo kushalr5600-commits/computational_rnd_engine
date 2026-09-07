@@ -1,0 +1,26 @@
+# GF180MCU target profile — SECOND open-PDK path, declared but deliberately
+# not a target until the SKY130A RTL->GDS->DRC/LVS path is complete (§6).
+# Same honesty rule as sky130.yaml: this file declares the target; only
+# eda-doctor may report that the PDK is installed and hashed.
+schema_version: 1
+extends: default.yaml
+pdk:
+  target: gf180mcuC
+  node_nm: 180
+  open_source: true
+  standard_cell_library: gf180mcu_fd_sc_mcu7t5v0
+  metal_stack: [met1, met2, met3, met4, met5]
+  version:
+    name: "open_pdks gf180mcuC"
+    commit: null
+    tree_hash: null
+  corners: [tt_3V30_25C, ss_3V00_-40C, ff_3V60_100C]
+  libraries:
+    lef: "libs.ref/gf180mcu_fd_sc_mcu7t5v0/lef"
+    liberty: "libs.ref/gf180mcu_fd_sc_mcu7t5v0/lib"
+    gds: "libs.ref/gf180mcu_fd_sc_mcu7t5v0/gds"
+    magic: "libs.tech/magic"
+    netgen: "libs.tech/netgen"
+    klayout: "libs.tech/klayout"
+status: BLOCKED
+status_reason: "Deferred: SKY130A path must complete first (open-PDK policy)."

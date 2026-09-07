@@ -1,0 +1,116 @@
+{
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "parameters": [
+    {
+      "description": "Instruction-set address/data width.",
+      "field_type": "integer",
+      "legal_max": 256,
+      "legal_min": 16,
+      "name": "isa_width",
+      "path": "representation.isa_width",
+      "provenance": {},
+      "source": "design.representation.isa_width",
+      "unit": "bit",
+      "value": 128
+    },
+    {
+      "description": "Widest SIMD/vector datapath.",
+      "field_type": "integer",
+      "legal_max": 4096,
+      "legal_min": 32,
+      "name": "vector_width",
+      "path": "representation.vector_width",
+      "provenance": {},
+      "source": "design.representation.vector_width",
+      "unit": "bit",
+      "value": 128
+    },
+    {
+      "description": "Baseline pipeline depth.",
+      "field_type": "integer",
+      "legal_max": 64,
+      "legal_min": 2,
+      "name": "pipeline_depth",
+      "path": "representation.pipeline_depth",
+      "provenance": {},
+      "source": "design.representation.pipeline_depth",
+      "unit": "stage",
+      "value": 6
+    },
+    {
+      "description": "Instructions issued per cycle.",
+      "field_type": "integer",
+      "legal_max": 32,
+      "legal_min": 1,
+      "name": "issue_width",
+      "path": "representation.issue_width",
+      "provenance": {},
+      "source": "design.representation.issue_width",
+      "unit": "inst",
+      "value": 12
+    },
+    {
+      "description": "General-purpose execution units.",
+      "field_type": "integer",
+      "legal_max": 128,
+      "legal_min": 1,
+      "name": "execution_units",
+      "path": "representation.execution_units",
+      "provenance": {},
+      "source": "design.representation.execution_units",
+      "unit": "unit",
+      "value": 10
+    },
+    {
+      "description": "Architectural register file entries.",
+      "field_type": "integer",
+      "legal_max": 2048,
+      "legal_min": 8,
+      "name": "register_count",
+      "path": "representation.register_count",
+      "provenance": {},
+      "source": "design.representation.register_count",
+      "unit": "reg",
+      "value": 64
+    },
+    {
+      "description": "Parallel processing lanes.",
+      "field_type": "integer",
+      "legal_max": 4096,
+      "legal_min": 1,
+      "name": "parallel_lanes",
+      "path": "synthesized.parallel_lanes",
+      "provenance": {},
+      "source": "design.synthesized.parallel_lanes",
+      "unit": "lane",
+      "value": 32
+    },
+    {
+      "description": "Tensor/accelerator units.",
+      "field_type": "integer",
+      "legal_max": 1024,
+      "legal_min": 0,
+      "name": "tensor_units",
+      "path": "synthesized.tensor_units",
+      "provenance": {},
+      "source": "design.synthesized.tensor_units",
+      "unit": "unit",
+      "value": 0
+    },
+    {
+      "description": "Specialized compute units.",
+      "field_type": "integer",
+      "legal_max": 512,
+      "legal_min": 0,
+      "name": "specialized_units",
+      "path": "synthesized.specialized_units",
+      "provenance": {},
+      "source": "design.synthesized.specialized_units",
+      "unit": "unit",
+      "value": 10
+    }
+  ],
+  "section": "compute",
+  "source": "design.representation + design.synthesized",
+  "title": "Compute Resources"
+}

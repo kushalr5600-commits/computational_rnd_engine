@@ -1,0 +1,64 @@
+{
+  "mechanisms": [
+    {
+      "derived_from": [
+        "representation.issue_width"
+      ],
+      "kind": "issue",
+      "name": "in_order_issue",
+      "rule": "in-order issue of issue_width instructions/cycle",
+      "strength": null,
+      "width_bits": 12
+    },
+    {
+      "derived_from": [
+        "interactions.branch_predictor"
+      ],
+      "kind": "branch_predict",
+      "name": "branch_predictor",
+      "rule": "branch-predictor capability scaled by spec strength",
+      "strength": 0.029797219438070344,
+      "width_bits": null
+    },
+    {
+      "derived_from": [
+        "interactions.prefetch_strength"
+      ],
+      "kind": "prefetch",
+      "name": "prefetch",
+      "rule": "prefetch aggressiveness from spec strength",
+      "strength": 0.4219218196852704,
+      "width_bits": null
+    },
+    {
+      "derived_from": [
+        "representation.issue_width"
+      ],
+      "kind": "retire",
+      "name": "in_order_retire",
+      "rule": "in-order retire of issue_width instructions/cycle",
+      "strength": null,
+      "width_bits": 12
+    },
+    {
+      "derived_from": [
+        "interactions.data_reuse"
+      ],
+      "kind": "dataflow",
+      "name": "data_reuse",
+      "rule": "data-reuse/locality control strength from spec",
+      "strength": 0.21863797480360336,
+      "width_bits": null
+    },
+    {
+      "derived_from": [
+        "interactions.fusion"
+      ],
+      "kind": "dataflow",
+      "name": "kernel_fusion",
+      "rule": "kernel-fusion control strength from spec",
+      "strength": 0.026535969683863625,
+      "width_bits": null
+    }
+  ]
+}

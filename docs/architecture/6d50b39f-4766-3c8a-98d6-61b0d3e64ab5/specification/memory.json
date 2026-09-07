@@ -1,0 +1,68 @@
+{
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "parameters": [
+    {
+      "description": "L1 cache capacity.",
+      "field_type": "integer",
+      "legal_max": 4096,
+      "legal_min": 4,
+      "name": "l1_kb",
+      "path": "structure.l1_kb",
+      "provenance": {},
+      "source": "design.structure.l1_kb",
+      "unit": "kB",
+      "value": 64
+    },
+    {
+      "description": "L2 cache capacity.",
+      "field_type": "integer",
+      "legal_max": 65536,
+      "legal_min": 64,
+      "name": "l2_kb",
+      "path": "structure.l2_kb",
+      "provenance": {},
+      "source": "design.structure.l2_kb",
+      "unit": "kB",
+      "value": 512
+    },
+    {
+      "description": "L3/shared cache capacity.",
+      "field_type": "integer",
+      "legal_max": 524288,
+      "legal_min": 0,
+      "name": "l3_kb",
+      "path": "structure.l3_kb",
+      "provenance": {},
+      "source": "design.structure.l3_kb",
+      "unit": "kB",
+      "value": 65536
+    },
+    {
+      "description": "Cache line size.",
+      "field_type": "integer",
+      "legal_max": 256,
+      "legal_min": 16,
+      "name": "cache_line_bytes",
+      "path": "structure.cache_line_bytes",
+      "provenance": {},
+      "source": "design.structure.cache_line_bytes",
+      "unit": "B",
+      "value": 32
+    },
+    {
+      "description": "DRAM memory channels.",
+      "field_type": "integer",
+      "legal_max": 64,
+      "legal_min": 1,
+      "name": "memory_channels",
+      "path": "structure.memory_channels",
+      "provenance": {},
+      "source": "design.structure.memory_channels",
+      "unit": "chan",
+      "value": 3
+    }
+  ],
+  "section": "memory",
+  "source": "design.structure",
+  "title": "Memory System"
+}

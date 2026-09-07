@@ -1,0 +1,6 @@
+# Power flow (§14). Estimates only where a tool produced them; labeled as such.
+flow: power
+tool: openroad
+engine: openroad
+timeout_s: 1800
+metrics: [dynamic_power_w, leakage_power_w, total_power_w]

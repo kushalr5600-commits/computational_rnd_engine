@@ -1,0 +1,7 @@
+# STA flow (§14). OpenSTA corners from the PDK profile; WNS/TNS must come from
+# an actual timing run, never from estimates.
+flow: sta
+tool: opensta
+engine: opensta
+timeout_s: 900
+corners: [tt_1V80_25C]

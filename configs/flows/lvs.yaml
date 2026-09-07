@@ -1,0 +1,7 @@
+# LVS flow (§16). netgen comparing layout-derived netlist vs synthesized
+# logic netlist. Only a real clean comparison is PASS.
+flow: lvs
+tool: netgen
+engine: netgen
+timeout_s: 1800
+pass_condition: {clean: true}

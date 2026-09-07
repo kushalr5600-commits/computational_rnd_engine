@@ -1,0 +1,56 @@
+{
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "parameters": [
+    {
+      "description": "Target clock frequency.",
+      "field_type": "float",
+      "legal_max": 10.0,
+      "legal_min": 0.1,
+      "name": "clock_ghz",
+      "path": "synthesized.clock_ghz",
+      "provenance": {},
+      "source": "design.synthesized.clock_ghz",
+      "unit": "GHz",
+      "value": 3.44
+    },
+    {
+      "description": "Operating voltage.",
+      "field_type": "float",
+      "legal_max": 1.8,
+      "legal_min": 0.3,
+      "name": "voltage",
+      "path": "hardware.voltage",
+      "provenance": {},
+      "source": "design.hardware.voltage",
+      "unit": "V",
+      "value": 0.79
+    },
+    {
+      "description": "Relative frequency-scaling factor.",
+      "field_type": "float",
+      "legal_max": 4.0,
+      "legal_min": 0.2,
+      "name": "frequency_scaling",
+      "path": "hardware.frequency_scaling",
+      "provenance": {},
+      "source": "design.hardware.frequency_scaling",
+      "unit": null,
+      "value": 0.87
+    },
+    {
+      "description": "Technology node (feature size).",
+      "field_type": "integer",
+      "legal_max": 180,
+      "legal_min": 3,
+      "name": "technology_nm",
+      "path": "hardware.technology_nm",
+      "provenance": {},
+      "source": "design.hardware.technology_nm",
+      "unit": "nm",
+      "value": 14
+    }
+  ],
+  "section": "clock_reset",
+  "source": "design.synthesized + design.hardware",
+  "title": "Clock, Reset & Technology Strategy"
+}

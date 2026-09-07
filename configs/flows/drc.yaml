@@ -1,0 +1,9 @@
+# DRC flow (§15). magic (primary) / klayout (alt). Only violation_count == 0
+# under the configured deck qualifies as PASS; categories are never ignored.
+flow: drc
+tool: magic
+engine: magic
+timeout_s: 1800
+deck: sky130A.magic.rc
+alt_tools: [klayout]
+pass_condition: {violation_count: 0}

@@ -1,0 +1,13 @@
+# RTL lint flow (§10, §13). The generated candidate RTL is immutable; the lint
+# command is built from these options and executed in an isolated workdir.
+flow: lint
+tool: verilator
+engine: verilator
+timeout_s: 600
+options:
+  - --lint-only
+  - --top-module
+  - top
+  - "-Wno-MULTIDRIVEN"
+alt_tools: [iverilog]
+idempotent_on: []

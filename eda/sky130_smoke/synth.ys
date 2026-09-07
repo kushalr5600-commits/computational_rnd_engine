@@ -1,0 +1,10 @@
+# Synthesize counter8 to sky130_fd_sc_hd (tt_025C_1v80 corner)
+read_liberty -lib /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog /tmp/sky130_test/counter8.v
+synth -top counter8
+dfflibmap -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean -purge
+write_verilog -noattr /tmp/sky130_test/counter8.gate.v
+stat -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+exit

@@ -1,0 +1,68 @@
+{
+  "depth_stages": 6,
+  "slots_per_stage": 12,
+  "stages": [
+    {
+      "cycles": 1,
+      "derived_from": [
+        "representation.isa_width"
+      ],
+      "name": "fetch",
+      "role": "instruction fetch",
+      "rule": "fetch width == ISA width",
+      "width_bits": 128
+    },
+    {
+      "cycles": 1,
+      "derived_from": [
+        "representation.isa_width",
+        "representation.issue_width"
+      ],
+      "name": "decode",
+      "role": "instruction decode/rename",
+      "rule": "decode width == issue_width * ISA width",
+      "width_bits": 1536
+    },
+    {
+      "cycles": 1,
+      "derived_from": [
+        "representation.issue_width"
+      ],
+      "name": "issue",
+      "role": "issue to execution ports",
+      "rule": "issue ports == issue_width",
+      "width_bits": 1536
+    },
+    {
+      "cycles": 1,
+      "derived_from": [
+        "representation.issue_width",
+        "representation.execution_units"
+      ],
+      "name": "execute",
+      "role": "integer/FP execution",
+      "rule": "execute width == issue_width datapaths (execution_units >= issue_width enforced)",
+      "width_bits": 1536
+    },
+    {
+      "cycles": 1,
+      "derived_from": [
+        "structure.interconnect_width"
+      ],
+      "name": "memory",
+      "role": "memory access",
+      "rule": "memory stage width == interconnect width",
+      "width_bits": 1024
+    },
+    {
+      "cycles": 1,
+      "derived_from": [
+        "representation.issue_width"
+      ],
+      "name": "retire",
+      "role": "in-order retirement",
+      "rule": "retire width == issue_width * ISA width (in-order)",
+      "width_bits": 1536
+    }
+  ]
+}

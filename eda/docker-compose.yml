@@ -1,0 +1,50 @@
+# computational-rnd-engine — reproducible EDA environment (SKY130A)
+#
+# Usage:
+#   docker compose build
+#   docker compose run --rm eda rnd-engine eda-doctor
+#   docker compose run --rm eda rnd-engine flow --stages lint,simulation
+#
+# The PDK is mounted read-only from PDK_ROOT on the host.
+# Candidate artifacts are written to the host's ./artifacts directory.
+
+version: "3.8"
+
+services:
+  eda:
+    build:
+      context: ..
+      dockerfile: eda/Dockerfile
+    image: rnd-engine-eda:stable
+    container_name: rnd-engine-eda
+    working_dir: /work
+    volumes:
+      - ../:/work:rw
+      - ${PDK_ROOT:?PDK_ROOT must be set}:/pdk:ro
+    environment:
+      - PDK_ROOT=/pdk
+      - EDA_ROOT=/usr/local
+      - RND_ENGINE_CONFIG_DIR=/work/configs
+    # Security: no network, resource limits
+    network_mode: none
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "3"
+          memory: 6G
+    # Read-only root filesystem (except /work and /tmp)
+    read_only: true
+    tmpfs:
+      - /tmp:size=2G
+    # Drop all capabilities, no privilege escalation
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "bash", "-c", "verilator --version && yosys --version && openroad -version"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 30s

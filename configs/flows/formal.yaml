@@ -1,0 +1,9 @@
+# Formal verification flow (§12). Yosys formal prep reads RTL + properties
+# with -formal and runs prep -top formal_properties to validate the SVA
+# wrapper is syntactically correct and the design elaborates under -formal.
+# Full BMC (sby/smtmc) requires an external SMT solver (yices/z3) not installed
+# in this environment.
+flow: formal
+tool: yosys
+engine: yosys
+timeout_s: 900

@@ -1,0 +1,7 @@
+FROM rnd-engine-eda:signoff
+# Install Python deps for eda-doctor
+RUN pip3 install --no-cache-dir "pydantic>=2.7,<3" "pyyaml>=6.0,<7" "numpy>=2.0,<3"
+WORKDIR /work
+COPY . .
+RUN pip3 install --no-deps --no-cache-dir . 2>/dev/null || true
+CMD ["python3", "-m", "rnd_engine.cli", "eda-doctor"]

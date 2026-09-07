@@ -1,0 +1,9 @@
+# Gate-level synthesis flow (§13). yosys + abc to a gate netlist; metrics are
+# MEASURED_SYNTHESIS (actual tool output), never physical measurements.
+flow: synthesis
+tool: yosys
+engine: yosys
+timeout_s: 900
+abc: true
+techmap: true
+write_formats: [json, verilog]

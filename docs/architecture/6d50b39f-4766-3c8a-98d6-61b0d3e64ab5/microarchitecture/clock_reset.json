@@ -1,0 +1,28 @@
+{
+  "domains": [
+    {
+      "derived_from": [
+        "synthesized.clock_ghz",
+        "hardware.frequency_scaling",
+        "hardware.voltage",
+        "hardware.technology_nm"
+      ],
+      "frequency_ghz": 2.993,
+      "name": "core",
+      "rule": "core domain frequency = clock_ghz * frequency_scaling; voltage/technology from spec",
+      "technology_nm": 14,
+      "voltage_v": 0.79
+    },
+    {
+      "derived_from": [
+        "synthesized.clock_ghz",
+        "hardware.frequency_scaling"
+      ],
+      "frequency_ghz": 1.496,
+      "name": "memory",
+      "rule": "memory domain runs at half the core frequency (uncore divider=2)",
+      "technology_nm": 14,
+      "voltage_v": 0.79
+    }
+  ]
+}

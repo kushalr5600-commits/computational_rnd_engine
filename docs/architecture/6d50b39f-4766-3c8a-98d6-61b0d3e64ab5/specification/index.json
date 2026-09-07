@@ -1,0 +1,37 @@
+{
+  "architecture_schema_version": 1,
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "files": {
+    "architecture": {
+      "file": "architecture.json",
+      "sha256": "dcbc623be92073589b2b89ad7705c235b040220e658ae6c7b59d6e30ea5a3da1"
+    },
+    "clock_reset": {
+      "file": "clock_reset.json",
+      "sha256": "4e7041a725d7319c832eb908117f423beb303591e1acea3fa7135711bff15c29"
+    },
+    "compute": {
+      "file": "compute.json",
+      "sha256": "ac855b404ae7d432958ea1c2ea5b5811fc681912feb2c4862faa88182ee760d7"
+    },
+    "control": {
+      "file": "control.json",
+      "sha256": "657f3a59faa65e63645f943c84a801bbc70e33d90d09a8a00774f85eac5a7349"
+    },
+    "interfaces": {
+      "file": "interfaces.json",
+      "sha256": "a32fe3f381c6eac5846fc8f328b411f6e292354d249876249e88cf72b4e57066"
+    },
+    "memory": {
+      "file": "memory.json",
+      "sha256": "1317100b48adcb537c732848703cf7e2dcac3a7ef68f07f2e09c39d6175a04c9"
+    },
+    "parameters": {
+      "file": "parameters.json",
+      "sha256": "11f18f153878e669078108d98f425932b0ec31319fb4eab31316a8314140be1a"
+    }
+  },
+  "generator_version": "1.0.0",
+  "specification_hash": "0edf41603bf572bf288b161975cb95b8",
+  "specification_schema_version": 1
+}

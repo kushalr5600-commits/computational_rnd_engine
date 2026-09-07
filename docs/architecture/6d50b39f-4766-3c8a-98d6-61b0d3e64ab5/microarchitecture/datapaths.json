@@ -1,0 +1,43 @@
+{
+  "datapaths": [
+    {
+      "count": 10,
+      "depth": null,
+      "derived_from": [
+        "representation.execution_units",
+        "representation.isa_width"
+      ],
+      "kind": "alu",
+      "name": "alu",
+      "rule": "one ALU per execution_unit",
+      "width_bits": 128
+    },
+    {
+      "count": 1,
+      "depth": 64,
+      "derived_from": [
+        "representation.register_count",
+        "representation.isa_width"
+      ],
+      "kind": "register_file",
+      "name": "register_file",
+      "rule": "architectural register file with register_count entries",
+      "width_bits": 128
+    },
+    {
+      "count": 10,
+      "depth": null,
+      "derived_from": [
+        "synthesized.specialized_units"
+      ],
+      "kind": "specialized",
+      "name": "specialized_units",
+      "rule": "specialized_units specialized accelerators (2*ISA datapath)",
+      "width_bits": 256
+    }
+  ],
+  "issue_width": 12,
+  "register_file_entries": 64,
+  "register_file_read_ports": 24,
+  "register_file_write_ports": 12
+}

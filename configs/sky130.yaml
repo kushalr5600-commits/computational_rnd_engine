@@ -1,0 +1,25 @@
+# SKY130A target profile — first open-PDK path (the bootstrapping plan §6).
+# Declares the *target*; whether the PDK files are installed and their true
+# version/hash is established by rnd-engine eda-doctor (filesystem probe +
+# directory hash), never assumed from this file.
+schema_version: 1
+extends: default.yaml
+pdk:
+  target: sky130A
+  node_nm: 130
+  open_source: true
+  standard_cell_library: sky130_fd_sc_hd
+  metal_stack: [li1, met1, met2, met3, met4, met5]
+  # Identity of the installed PDK — null until eda-doctor verifies it.
+  version:
+    name: "open_pdks sky130A"
+    commit: null
+    tree_hash: null
+  corners: [tt_1V80_25C, ss_1V60_-40C, ff_1V95_100C]
+  libraries:
+    lef: "libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.tlef"
+    liberty: "libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib"
+    gds: "libs.ref/sky130_fd_sc_hd/gds/sky130_fd_sc_hd.gds"
+    magic: "libs.tech/magic/sky130A.tcl"
+    netgen: "libs.tech/netgen"
+    klayout: "libs.tech/klayout"

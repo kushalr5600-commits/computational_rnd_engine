@@ -1,0 +1,55 @@
+{
+  "ports": [
+    {
+      "count": 1,
+      "derived_from": [
+        "representation.isa_width"
+      ],
+      "direction": "master",
+      "name": "instruction_fetch",
+      "rule": "instruction fetch port sized to ISA width",
+      "width_bits": 128
+    },
+    {
+      "count": 1,
+      "derived_from": [
+        "structure.interconnect_width"
+      ],
+      "direction": "master",
+      "name": "data_memory",
+      "rule": "data memory port sized to interconnect width",
+      "width_bits": 1024
+    },
+    {
+      "count": 1,
+      "derived_from": [
+        "structure.interconnect_width"
+      ],
+      "direction": "master",
+      "name": "system_interconnect",
+      "rule": "system interconnect port",
+      "width_bits": 1024
+    },
+    {
+      "count": 3,
+      "derived_from": [
+        "structure.memory_channels"
+      ],
+      "direction": "master",
+      "name": "dram",
+      "rule": "one DRAM port per memory channel",
+      "width_bits": 1024
+    },
+    {
+      "count": 1,
+      "derived_from": [
+        "synthesized.tensor_units",
+        "synthesized.specialized_units"
+      ],
+      "direction": "internal",
+      "name": "accelerator",
+      "rule": "accelerator interface present when tensor or specialized units exist",
+      "width_bits": 1024
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# Minimize build context — we only need this Dockerfile
+*
+!Dockerfile.signoff_v2

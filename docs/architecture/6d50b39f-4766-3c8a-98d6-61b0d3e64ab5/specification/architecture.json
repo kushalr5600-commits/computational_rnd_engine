@@ -1,0 +1,140 @@
+{
+  "design_id": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5",
+  "parameters": [
+    {
+      "description": "Content-addressed design identifier.",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "design_id",
+      "path": "architecture.design_id",
+      "provenance": {},
+      "source": "design.id",
+      "unit": null,
+      "value": "6d50b39f-4766-3c8a-98d6-61b0d3e64ab5"
+    },
+    {
+      "description": "Processor domain target.",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "domain",
+      "path": "architecture.domain",
+      "provenance": {},
+      "source": "design.domain",
+      "unit": null,
+      "value": "heterogeneous"
+    },
+    {
+      "description": "Version of the Design schema used by the generator.",
+      "field_type": "integer",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "architecture_schema_version",
+      "path": "architecture.architecture_schema_version",
+      "provenance": {},
+      "source": "design.architecture_schema_version",
+      "unit": null,
+      "value": 1
+    },
+    {
+      "description": "Generation in which the design was produced (0 = root).",
+      "field_type": "integer",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "generation",
+      "path": "architecture.generation",
+      "provenance": {},
+      "source": "design.generation",
+      "unit": null,
+      "value": 0
+    },
+    {
+      "description": "Immediate parent design IDs (empty for roots).",
+      "field_type": "list",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "parent_ids",
+      "path": "architecture.parent_ids",
+      "provenance": {},
+      "source": "design.parent_ids",
+      "unit": null,
+      "value": []
+    },
+    {
+      "description": "Search RNG seed that generated the design.",
+      "field_type": "integer",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "seed",
+      "path": "architecture.seed",
+      "provenance": {},
+      "source": "provenance.search_config.seed",
+      "unit": null,
+      "value": 42
+    },
+    {
+      "description": "Search engine implementation.",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "search_engine",
+      "path": "architecture.search_engine",
+      "provenance": {},
+      "source": "provenance.search_config.engine",
+      "unit": null,
+      "value": "SearchEngine"
+    },
+    {
+      "description": "Random number generator implementation.",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "rng",
+      "path": "architecture.rng",
+      "provenance": {},
+      "source": "provenance.search_config.rng",
+      "unit": null,
+      "value": "Random"
+    },
+    {
+      "description": "Stable fingerprint of the search + objective configuration.",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "configuration_fingerprint",
+      "path": "architecture.configuration_fingerprint",
+      "provenance": {},
+      "source": "provenance.configuration_fingerprint",
+      "unit": null,
+      "value": "146a69d586c304df"
+    },
+    {
+      "description": "Objective (Omega) configuration snapshot.",
+      "field_type": "json",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "objective_config",
+      "path": "architecture.objective_config",
+      "provenance": {},
+      "source": "provenance.objective_config",
+      "unit": null,
+      "value": null
+    },
+    {
+      "description": "Target hardware strategy (mirrors domain).",
+      "field_type": "string",
+      "legal_max": null,
+      "legal_min": null,
+      "name": "hardware.target",
+      "path": "hardware.hardware.target",
+      "provenance": {},
+      "source": "design.hardware.target",
+      "unit": null,
+      "value": "heterogeneous"
+    }
+  ],
+  "section": "architecture",
+  "source": "design + provenance",
+  "title": "Architecture Identity & Provenance"
+}
