@@ -1,0 +1,122 @@
+# Dockerfile.reliable — Offline-capable EDA image
+# Two-stage build: tools compile in builder, runtime copies only binaries.
+# Build:  docker build -f eda/Dockerfile.reliable -t rnd-engine-eda:stable eda/
+# The image is self-contained — no network required at runtime.
+
+FROM ubuntu:22.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential clang bison flex \
+    autoconf automake libfl-dev curl ca-certificates \
+    help2man gperf gawk tcl-dev libffi-dev git \
+    graphviz xdot pkg-config python3-dev \
+    libboost-iostreams-dev libboost-system-dev libboost-filesystem-dev \
+    libboost-program-options-dev libboost-regex-dev libboost-thread-dev \
+    libeigen3-dev libspdlog-dev libsqlite3-dev \
+    libreadline-dev zlib1g-dev \
+    python3 python3-pip python3-venv \
+    cmake ninja-build libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- verilator ---
+ARG VERILATOR_VERSION=5.018
+RUN cd /tmp && \
+    git clone --depth 1 --branch v${VERILATOR_VERSION} https://github.com/verilator/verilator.git && \
+    cd verilator && autoconf && ./configure --prefix=/usr/local && \
+    make -j$(nproc) && make install && cd / && rm -rf /tmp/verilator
+
+# --- iverilog ---
+RUN cd /tmp && \
+    git clone --depth 1 --branch v12_0 https://github.com/steveicarus/iverilog.git && \
+    cd iverilog && sh autoconf.sh && ./configure --prefix=/usr/local && \
+    make -j$(nproc) && make install && cd / && rm -rf /tmp/iverilog
+
+# --- yosys ---
+ARG YOSYS_VERSION=0.38
+RUN cd /tmp && \
+    git clone --depth 1 --branch yosys-${YOSYS_VERSION} https://github.com/YosysHQ/yosys.git && \
+    cd yosys && make config-gcc && make -j$(nproc) && make install && \
+    cd / && rm -rf /tmp/yosys
+
+# --- abc ---
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/YosysHQ/abc.git && \
+    cd abc && make -j$(nproc) && cp abc /usr/local/bin/ && \
+    cd / && rm -rf /tmp/abc
+
+# --- symbiyosys ---
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/YosysHQ/sby.git && \
+    cd sby && make install PREFIX=/usr/local && \
+    cd / && rm -rf /tmp/sby
+
+# --- openroad ---
+RUN cd /tmp && \
+    git clone --depth 1 --single-branch https://github.com/The-OpenROAD-Project/OpenROAD.git && \
+    cd OpenROAD && ./etc/DependencyInstaller.sh -all && \
+    mkdir -p build && cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j$(nproc) && make install && \
+    cd / && rm -rf /tmp/OpenROAD
+
+# --- magic ---
+RUN cd /tmp && \
+    git clone --depth 1 --branch 8.3.305 https://github.com/RTimothyEdwards/magic.git && \
+    cd magic && ./configure --prefix=/usr/local && make -j$(nproc) && make install && \
+    cd / && rm -rf /tmp/magic
+
+# --- netgen ---
+RUN cd /tmp && \
+    git clone --depth 1 --branch 1.5.265 https://github.com/RTimothyEdwards/netgen.git && \
+    cd netgen && ./configure --prefix=/usr/local && make -j$(nproc) && make install && \
+    cd / && rm -rf /tmp/netgen
+
+# --- klayout ---
+RUN cd /tmp && \
+    curl -fsSL https://www.klayout.org/downloads/Ubuntu-22/klayout_0.29.11-1_amd64.deb -o klayout.deb && \
+    apt-get update && apt-get install -y --no-install-recommends ./klayout.deb && \
+    rm -f klayout.deb && rm -rf /var/lib/apt/lists/*
+
+# --- python packages ---
+RUN pip3 install --no-cache-dir pydantic pyyaml click
+
+# ============================================================
+# Runtime stage: minimal image with only binaries + libs
+# ============================================================
+FROM ubuntu:22.04 AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 libboost-iostreams-dev libboost-system-dev libboost-filesystem-dev \
+    libboost-program-options-dev libboost-regex-dev libboost-thread-dev \
+    libeigen3-dev libspdlog-dev libsqlite3-dev \
+    libreadline-dev zlib1g-dev \
+    python3 python3-pip \
+    tcl-dev libffi-dev git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy tool binaries from builder
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=builder /usr/local/lib/ /usr/local/lib/
+COPY --from=builder /usr/local/share/ /usr/local/share/
+
+# Copy Python packages
+COPY --from=builder /usr/lib/python3/dist-packages/ /usr/lib/python3/dist-packages/
+
+# Install Python packages in runtime
+RUN pip3 install --no-cache-dir pydantic pyyaml click
+
+# PDK mount point
+ENV PDK_ROOT=/pdk
+ENV EDA_ROOT=/usr/local
+ENV RND_ENGINE_CONFIG_DIR=/work/configs
+
+WORKDIR /work
+
+# Healthcheck
+HEALTHCHECK --interval=60s --timeout=30s --retries=3 --start-period=30s \
+    CMD yosys --version && openroad -version && magic --version
+
+CMD ["rnd-engine", "eda-doctor"]
