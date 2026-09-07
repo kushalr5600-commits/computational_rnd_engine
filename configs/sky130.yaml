@@ -31,9 +31,10 @@ pdk:
     netgen: "libs.tech/netgen"
     netgen_setup: "libs.tech/netgen/setup.tcl"
     klayout: "libs.tech/klayout"
-    pdn: "libs.tech/openroad/sky130_fd_sc_hd/pdn.cfg"
-    tracks: "libs.tech/openroad/sky130_fd_sc_hd/tracks.info"
-    rcx_rules: "libs.tech/openroad/sky130_fd_sc_hd/sky130hd.rcx_rules"
+    pdn: "/tmp/The-OpenROAD-Project-OpenROAD-4feaf99/test/sky130hd/sky130hd.pdn"
+    tracks: "/tmp/The-OpenROAD-Project-OpenROAD-4feaf99/test/sky130hd/sky130hd.tracks"
+    rcx_rules: "/tmp/The-OpenROAD-Project-OpenROAD-4feaf99/test/sky130hd/sky130hd.rcx_rules"
+    rc: "/tmp/The-OpenROAD-Project-OpenROAD-4feaf99/test/sky130hd/sky130hd.rc"
   # Physical design parameters
   physical:
     clock_buffer: sky130_fd_sc_hd__clkbuf_1

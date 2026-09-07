@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -231,13 +232,26 @@ def stage_synthesis(design_id: str, rtl_dir: Path, config: dict[str, Any],
     workdir = workroot / "synthesis"
     workdir.mkdir(parents=True, exist_ok=True)
     reads = "\n".join(f"read_verilog -sv {p}" for p in _rtl_sources(rtl_dir))
+    # Resolve PDK liberty for cell mapping
+    pdk_root = os.environ.get("PDK_ROOT", "/usr/local/share/pdk/sky130A")
+    liberty_rel = config.get("pdk", {}).get("libraries", {}).get("liberty", "")
+    liberty_path = f"{pdk_root}/{liberty_rel}" if liberty_rel else ""
+
     flow = (
         f"# deterministic yosys flow for design {design_id} (receipt layer)\n"
         f"{reads}\n"
         "synth -top top\n"
-        "opt_clean\n"
+    )
+    if liberty_path:
+        flow += f"read_liberty -lib {liberty_path}\n"
+        flow += f"dfflibmap -liberty {liberty_path}\n"
+        flow += f"abc -liberty {liberty_path}\n"
+    flow += (
+        "opt_clean -purge\n"
+        "flatten\n"
         "stat\n"
         f"write_json {design_id}.netlist.json\n"
+        f"write_verilog -noattr {design_id}.v\n"
     )
     (workdir / "flow.ys").write_text(flow, encoding="utf-8")
     run = run_external_tool(
@@ -285,10 +299,11 @@ def _run_script_stage(stage: str, tool: str, binary: str, script_name: str,
 
 
 def _pdk_path(config: dict[str, Any], key: str) -> str:
-    """Resolve a PDK file path relative to PDK_ROOT."""
-    import os
-    pdk_root = os.environ.get("PDK_ROOT", "/usr/local/share/pdk/sky130A")
+    """Resolve a PDK file path relative to PDK_ROOT (or absolute)."""
     rel = config["pdk"]["libraries"].get(key, "")
+    if os.path.isabs(rel):
+        return rel
+    pdk_root = os.environ.get("PDK_ROOT", "/usr/local/share/pdk/sky130A")
     return f"{pdk_root}/{rel}"
 
 
@@ -314,6 +329,50 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
     pdn_cfg = _pdk_path(config, "pdn")
     tracks_info = _pdk_path(config, "tracks")
     rcx_rules = _pdk_path(config, "rcx_rules")
+    rc_path = _pdk_path(config, "rc")
+
+    # Auto-scale die area based on cell count from netlist JSON
+    netlist_path = workroot / "synthesis" / f"{design_id}.netlist.json"
+    cell_count = 0
+    if netlist_path.exists():
+        try:
+            with open(netlist_path, encoding="utf-8") as f:
+                nl = json.load(f)
+            modules = nl.get("modules", {})
+            if isinstance(modules, dict):
+                cell_count = sum(len(m.get("cells", [])) for m in modules.values())
+            elif isinstance(modules, list) and modules:
+                cell_count = sum(len(m.get("cells", [])) for m in modules)
+        except (OSError, json.JSONDecodeError, IndexError, KeyError):
+            pass
+    # Sky130A: site=0.46x2.72µm, target ~50% util
+    # Empirical: ~17000 µm² per standard cell (sky130_fd_sc_hd avg)
+    import math
+    if cell_count > 500:
+        cell_area_um2 = cell_count * 17000
+        side_um = math.sqrt(cell_area_um2 / 0.50) * 1.1  # 50% util + 10% margin
+        side_um = max(side_um, 100.0)
+        die_w = round(side_um, 2)
+        die_h = round(side_um * 1.00168, 3)
+        margin = round(die_w * 0.1, 2)
+        core_lx = round(margin, 2)
+        core_ly = round(margin, 2)
+        core_ux = round(die_w - margin, 2)
+        core_uy = round(die_h - margin, 2)
+    else:
+        die_w, die_h = 99.96, 100.128
+        core_lx, core_ly = 9.996, 10.08
+        core_ux, core_uy = 89.964, 90.048
+
+    # Copy gate-level Verilog from synthesis work directory
+    synth_dir = workroot / "synthesis"
+    verilog_src = synth_dir / f"{design_id}.v"
+    phys_dir = workroot / "physical"
+    phys_dir.mkdir(parents=True, exist_ok=True)
+    verilog_dst = phys_dir / f"{design_id}.v"
+    if verilog_src.exists():
+        import shutil
+        shutil.copy2(verilog_src, verilog_dst)
 
     clk_buf = phys.get("clock_buffer", "sky130_fd_sc_hd__clkbuf_1")
     clk_buf_list = phys.get("clock_buffer_list", "sky130_fd_sc_hd__clkbuf_1")
@@ -336,16 +395,16 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
         f"\n"
         f"# --- Read synthesized netlist ---\n"
         f"read_verilog {design_id}.v\n"
-        f"link_design {design_id}\n"
+        f"link_design top\n"
         f"\n"
         f"# --- Constraints ---\n"
-        f"read_sdc {design_id}.sdc\n"
+        f"create_clock -period 10.0 [get_ports clk]\n"
         f"\n"
         f"# --- Floorplan ---\n"
         f"initialize_floorplan -site unithd "
-        f"-die_area {{0 0 99.96 100.128}} "
-        f"-core_area {{9.996 10.08 89.964 90.048}}\n"
-        f"source $pdk/{tracks_info}\n"
+        f"-die_area {{0 0 {die_w} {die_h}}} "
+        f"-core_area {{{core_lx} {core_ly} {core_ux} {core_uy}}}\n"
+        f"source {tracks_info}\n"
         f"remove_buffers\n"
         f"place_pins -random -hor_layers met3 -ver_layers met2\n"
         f"\n"
@@ -353,7 +412,7 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
         f"tapcell -distance {tap_dist} -tapcell_master {tap_master}\n"
         f"\n"
         f"# --- Power distribution network ---\n"
-        f"pdngen -verbose $pdk/{pdn_cfg}\n"
+        f"pdngen -verbose {pdn_cfg}\n"
         f"\n"
         f"# --- Global placement ---\n"
         f"set_global_routing_layer_adjustment met1 {adj}\n"
@@ -367,7 +426,7 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
         f"place_pins -hor_layers met3 -ver_layers met2\n"
         f"\n"
         f"# --- Repair + placement ---\n"
-        f"source $pdk/{rcx_rules.replace('sky130hd.rcx_rules', 'sky130hd/sky130hd.rc')}\n"
+        f"source {rc_path}\n"
         f"set_wire_rc -signal -layer met2\n"
         f"set_wire_rc -clock -layer met5\n"
         f"set_dont_use {{sky130_fd_sc_hd__probe_p_* sky130_fd_sc_hd__probec_p_*}}\n"
@@ -404,7 +463,7 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
         f"\n"
         f"# --- SPEF extraction ---\n"
         f"define_process_corner -ext_model_index 0 X\n"
-        f"extract_parasitics -ext_model_file $pdk/{rcx_rules}\n"
+        f"extract_parasitics -ext_model_file {rcx_rules}\n"
         f"write_spef {design_id}.spef\n"
         f"read_spef {design_id}.spef\n"
         f"\n"
@@ -435,10 +494,10 @@ def stage_sta(design_id: str, config: dict[str, Any], workroot: Path,
     Reads the routed DEF/SPEF and checks timing at TT, FF, SS corners.
     Reports WNS, TNS, clock skew, and hold/setup violations.
     """
-    opensta = _resolve_binary("opensta", config, env=env)
-    if opensta is None:
-        return _blocked("opensta", "sta", "opensta not found", TOOL_NOT_FOUND)
-    blocked = _pdk_or_blocked("sta", "opensta", config, env)
+    openroad = _resolve_binary("openroad", config, env=env)
+    if openroad is None:
+        return _blocked("openroad", "sta", "openroad not found", TOOL_NOT_FOUND)
+    blocked = _pdk_or_blocked("sta", "openroad", config, env)
     if blocked is not None:
         return blocked
 
@@ -449,7 +508,7 @@ def stage_sta(design_id: str, config: dict[str, Any], workroot: Path,
         f"set pdk /usr/local/share/pdk/sky130A\n"
         f"\n"
         f"read_verilog {design_id}.routed.v\n"
-        f"link_design {design_id}\n"
+        f"link_design top\n"
         f"read_sdc {design_id}.sdc\n"
         f"read_spef {design_id}.spef\n"
         f"\n"
@@ -479,7 +538,7 @@ def stage_sta(design_id: str, config: dict[str, Any], workroot: Path,
         f"report_tns -digits 3\n"
     )
     return _run_script_stage(
-        "sta", "opensta", opensta, "sta.tcl", script,
+        "sta", "openroad", openroad, "sta.tcl", script,
         config, workroot, env,
         float(config["flows"]["sta"].get("timeout_s", 900)))
 
@@ -508,7 +567,7 @@ def stage_power(design_id: str, config: dict[str, Any], workroot: Path,
         f"read_lef $pdk/{libs.get('lef', '')}\n"
         f"read_liberty $pdk/{libs.get('liberty_tt', '')}\n"
         f"read_verilog {design_id}.routed.v\n"
-        f"link_design {design_id}\n"
+        f"link_design top\n"
         f"read_sdc {design_id}.sdc\n"
         f"read_spef {design_id}.spef\n"
         f"\n"

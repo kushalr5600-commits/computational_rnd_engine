@@ -199,6 +199,11 @@ def _check_pdk(config: dict[str, Any], env: dict[str, str] | None) -> PdkCheck:
     env_map = dict(env) if env is not None else {}
     root = env_map.get("PDK_ROOT")
     if not root:
+        for candidate in ["/usr/local/share/pdk", "/usr/share/pdk"]:
+            if Path(candidate).is_dir():
+                root = candidate
+                break
+    if not root:
         return PdkCheck(target=target, status=PDK_STATUS_MISSING,
                         missing_paths=["PDK_ROOT not set"])
     root_path = Path(root)
