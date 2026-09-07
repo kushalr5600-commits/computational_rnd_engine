@@ -116,11 +116,13 @@ def test_stage_scripts_written_and_labeled(bound):
     for stage in PHYSICAL_STAGES:
         script = stages_dir / f"{stage}.tcl"
         assert script.exists(), stage
-        assert "generated, not executed" in script.read_text(encoding="utf-8")
+        content = script.read_text(encoding="utf-8")
+        # Scripts now contain real Sky130A PDK commands
+        assert "sky130" in content.lower() or "pdk" in content.lower()
     assert "initialize_floorplan" in (stages_dir / "floorplan.tcl").read_text("utf-8")
     assert "clock_tree_synthesis" in (stages_dir / "cts.tcl").read_text("utf-8")
-    assert "report_wns" in (stages_dir / "sta.tcl").read_text("utf-8")
-    assert "run_magic_drc" in (stages_dir / "drc.tcl").read_text("utf-8")
+    assert "report_worst_slack" in (stages_dir / "sta.tcl").read_text("utf-8")
+    assert "drc check" in (stages_dir / "drc.tcl").read_text("utf-8")
     assert "lvs" in (stages_dir / "lvs.tcl").read_text("utf-8")
 
 

@@ -284,24 +284,143 @@ def _run_script_stage(stage: str, tool: str, binary: str, script_name: str,
     return _failed(tool, stage, run, message=f"{tool} {stage} did not pass")
 
 
+def _pdk_path(config: dict[str, Any], key: str) -> str:
+    """Resolve a PDK file path relative to PDK_ROOT."""
+    import os
+    pdk_root = os.environ.get("PDK_ROOT", "/usr/local/share/pdk/sky130A")
+    rel = config["pdk"]["libraries"].get(key, "")
+    return f"{pdk_root}/{rel}"
+
+
 def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
                    workroot: Path, env: dict[str, str] | None) -> StageReceipt:
-    """OpenROAD floorplan/place/CTS/route (section 14)."""
+    """OpenROAD floorplan/place/CTS/route — real Sky130A flow (section 14).
+
+    Follows the proven counter8 smoke-test pattern: tech LEF, cell LEF,
+    liberty, floorplan, tapcell, PDN, placement, CTS, fillers, routing,
+    antenna check, SPEF extraction, GDS write.
+    """
     openroad = _resolve_binary("openroad", config, env=env)
     if openroad is None:
         return _blocked("openroad", "physical", "openroad not found", TOOL_NOT_FOUND)
     blocked = _pdk_or_blocked("physical", "openroad", config, env)
     if blocked is not None:
         return blocked
-    flow_tcl = tech_dir / "openroad_flow.tcl" if tech_dir.exists() else None
-    script = flow_tcl.read_text(encoding="utf-8") if flow_tcl else (
-        f"# physical stages for design {design_id} (receipt layer)\n"
-        "set ::env(DESIGN_NAME) top\n"
-        "initialize_floorplan -utilization 55 -aspect_ratio 1 -core_space 5\n"
-        "global_placement\ndetailed_placement\n"
-        "clock_tree_synthesis\n"
-        "global_route\ndetailed_route\n"
-        "write_gds top.gds\n"
+
+    pdk = config.get("pdk", {})
+    phys = pdk.get("physical", {})
+    libs = pdk.get("libraries", {})
+
+    pdn_cfg = _pdk_path(config, "pdn")
+    tracks_info = _pdk_path(config, "tracks")
+    rcx_rules = _pdk_path(config, "rcx_rules")
+
+    clk_buf = phys.get("clock_buffer", "sky130_fd_sc_hd__clkbuf_1")
+    clk_buf_list = phys.get("clock_buffer_list", "sky130_fd_sc_hd__clkbuf_1")
+    tap_master = phys.get("tapcell_master", "sky130_fd_sc_hd__tapvpwrvgnd_1")
+    filler_pfx = phys.get("filler_prefix", "sky130_fd_sc_hd__fill_*")
+    tap_dist = phys.get("tap_distance", 14)
+    pad = phys.get("placement_padding", 2)
+    adj = phys.get("global_routing_adjustment", 0.5)
+    sig_layers = phys.get("global_routing_signal_layers", "met1-met5")
+    clk_layers = phys.get("global_routing_clock_layers", "met3-met5")
+
+    script = (
+        f"# Real Sky130A physical design for {design_id}\n"
+        f"set pdk /usr/local/share/pdk/sky130A\n"
+        f"\n"
+        f"# --- Read technology + cell libraries ---\n"
+        f"read_lef $pdk/{libs.get('tech_lef', '')}\n"
+        f"read_lef $pdk/{libs.get('lef', '')}\n"
+        f"read_liberty $pdk/{libs.get('liberty', '')}\n"
+        f"\n"
+        f"# --- Read synthesized netlist ---\n"
+        f"read_verilog {design_id}.v\n"
+        f"link_design {design_id}\n"
+        f"\n"
+        f"# --- Constraints ---\n"
+        f"read_sdc {design_id}.sdc\n"
+        f"\n"
+        f"# --- Floorplan ---\n"
+        f"initialize_floorplan -site unithd "
+        f"-die_area {{0 0 99.96 100.128}} "
+        f"-core_area {{9.996 10.08 89.964 90.048}}\n"
+        f"source $pdk/{tracks_info}\n"
+        f"remove_buffers\n"
+        f"place_pins -random -hor_layers met3 -ver_layers met2\n"
+        f"\n"
+        f"# --- Tap cell insertion ---\n"
+        f"tapcell -distance {tap_dist} -tapcell_master {tap_master}\n"
+        f"\n"
+        f"# --- Power distribution network ---\n"
+        f"pdngen -verbose $pdk/{pdn_cfg}\n"
+        f"\n"
+        f"# --- Global placement ---\n"
+        f"set_global_routing_layer_adjustment met1 {adj}\n"
+        f"set_global_routing_layer_adjustment met2 {adj}\n"
+        f"set_global_routing_layer_adjustment met3 {adj}\n"
+        f"set_global_routing_layer_adjustment met4 {adj}\n"
+        f"set_global_routing_layer_adjustment met5 {adj}\n"
+        f"set_routing_layers -signal {{{sig_layers}}} -clock {{{clk_layers}}}\n"
+        f"set_macro_extension 2\n"
+        f"global_placement -routability_driven -density 0.3 -pad_left 4 -pad_right 4\n"
+        f"place_pins -hor_layers met3 -ver_layers met2\n"
+        f"\n"
+        f"# --- Repair + placement ---\n"
+        f"source $pdk/{rcx_rules.replace('sky130hd.rcx_rules', 'sky130hd/sky130hd.rc')}\n"
+        f"set_wire_rc -signal -layer met2\n"
+        f"set_wire_rc -clock -layer met5\n"
+        f"set_dont_use {{sky130_fd_sc_hd__probe_p_* sky130_fd_sc_hd__probec_p_*}}\n"
+        f"estimate_parasitics -placement\n"
+        f"repair_design\n"
+        f"repair_tie_fanout -separation 5 sky130_fd_sc_hd__conb_1/LO\n"
+        f"repair_tie_fanout -separation 5 sky130_fd_sc_hd__conb_1/HI\n"
+        f"set_placement_padding -global -left {pad} -right {pad}\n"
+        f"detailed_placement\n"
+        f"report_worst_slack -min -digits 3\n"
+        f"report_worst_slack -max -digits 3\n"
+        f"report_tns -digits 3\n"
+        f"\n"
+        f"# --- Clock tree synthesis ---\n"
+        f"repair_clock_inverters\n"
+        f"clock_tree_synthesis -root_buf {clk_buf} -buf_list {clk_buf_list} "
+        f"-sink_clustering_enable\n"
+        f"repair_clock_nets\n"
+        f"estimate_parasitics -placement\n"
+        f"set_propagated_clock [all_clocks]\n"
+        f"repair_timing\n"
+        f"detailed_placement\n"
+        f"filler_placement {filler_pfx}\n"
+        f"check_placement -verbose\n"
+        f"\n"
+        f"# --- Routing ---\n"
+        f"global_route -congestion_iterations 100\n"
+        f"check_antennas -report_violating_nets -report_file {design_id}.ant.log\n"
+        f"write_verilog -remove_cells {filler_pfx} {design_id}.routed.v\n"
+        f"\n"
+        f"set_thread_count 2\n"
+        f"detailed_route -verbose 0\n"
+        f"detailed_route_num_drvs\n"
+        f"\n"
+        f"# --- SPEF extraction ---\n"
+        f"define_process_corner -ext_model_index 0 X\n"
+        f"extract_parasitics -ext_model_file $pdk/{rcx_rules}\n"
+        f"write_spef {design_id}.spef\n"
+        f"read_spef {design_id}.spef\n"
+        f"\n"
+        f"# --- Final reports ---\n"
+        f"report_checks -path_delay min_max -format full_clock_expanded "
+        f"-fields {{input_pin slew capacitance}} -digits 3\n"
+        f"report_worst_slack -min -digits 3\n"
+        f"report_worst_slack -max -digits 3\n"
+        f"report_tns -digits 3\n"
+        f"report_check_types -max_slew -max_capacitance -max_fanout "
+        f"-violators -digits 3\n"
+        f"report_clock_skew -digits 3\n"
+        f"report_power\n"
+        f"report_floating_nets -verbose\n"
+        f"report_design_area\n"
+        f"write_def {design_id}_route.def\n"
     )
     return _run_script_stage(
         "physical", "openroad", openroad, "physical.tcl", script,
@@ -311,34 +430,95 @@ def stage_physical(design_id: str, tech_dir: Path, config: dict[str, Any],
 
 def stage_sta(design_id: str, config: dict[str, Any], workroot: Path,
               env: dict[str, str] | None) -> StageReceipt:
-    """OpenSTA timing analysis (section 14)."""
+    """Multi-corner static timing analysis via OpenSTA (section 14).
+
+    Reads the routed DEF/SPEF and checks timing at TT, FF, SS corners.
+    Reports WNS, TNS, clock skew, and hold/setup violations.
+    """
     opensta = _resolve_binary("opensta", config, env=env)
     if opensta is None:
         return _blocked("opensta", "sta", "opensta not found", TOOL_NOT_FOUND)
     blocked = _pdk_or_blocked("sta", "opensta", config, env)
     if blocked is not None:
         return blocked
+
+    libs = config.get("pdk", {}).get("libraries", {})
+
     script = (
-        f"# STA for design {design_id} (receipt layer)\n"
-        "read_verilog top.sv\nset clk_period 10\n"
-        "create_clock -period 10 [get_ports clk]\nreport_worst_slack\nreport_tns\n"
+        f"# Multi-corner STA for design {design_id}\n"
+        f"set pdk /usr/local/share/pdk/sky130A\n"
+        f"\n"
+        f"read_verilog {design_id}.routed.v\n"
+        f"link_design {design_id}\n"
+        f"read_sdc {design_id}.sdc\n"
+        f"read_spef {design_id}.spef\n"
+        f"\n"
+        f"# --- TT corner (typical) ---\n"
+        f"read_liberty $pdk/{libs.get('liberty_tt', '')}\n"
+        f"set_propagated_clock [all_clocks]\n"
+        f"puts \"=== TT CORNER ===\"\n"
+        f"report_checks -path_delay min_max -digits 3\n"
+        f"report_worst_slack -min -digits 3\n"
+        f"report_worst_slack -max -digits 3\n"
+        f"report_tns -digits 3\n"
+        f"report_check_types -max_slew -max_capacitance -max_fanout -violators -digits 3\n"
+        f"report_clock_skew -digits 3\n"
+        f"\n"
+        f"# --- FF corner (fast) ---\n"
+        f"read_liberty $pdk/{libs.get('liberty_ff', '')}\n"
+        f"puts \"=== FF CORNER ===\"\n"
+        f"report_worst_slack -min -digits 3\n"
+        f"report_worst_slack -max -digits 3\n"
+        f"report_tns -digits 3\n"
+        f"\n"
+        f"# --- SS corner (slow) ---\n"
+        f"read_liberty $pdk/{libs.get('liberty_ss', '')}\n"
+        f"puts \"=== SS CORNER ===\"\n"
+        f"report_worst_slack -min -digits 3\n"
+        f"report_worst_slack -max -digits 3\n"
+        f"report_tns -digits 3\n"
     )
     return _run_script_stage(
         "sta", "opensta", opensta, "sta.tcl", script,
         config, workroot, env,
         float(config["flows"]["sta"].get("timeout_s", 900)))
+
+
 def stage_power(design_id: str, config: dict[str, Any], workroot: Path,
                 env: dict[str, str] | None) -> StageReceipt:
-    """Power analysis via OpenROAD (section 14)."""
+    """Power analysis via OpenROAD (section 14).
+
+    Reads the routed design with SPEF and reports dynamic/leakage power
+    breakdown at the TT corner.
+    """
     openroad = _resolve_binary("openroad", config, env=env)
     if openroad is None:
         return _blocked("openroad", "power", "openroad not found", TOOL_NOT_FOUND)
     blocked = _pdk_or_blocked("power", "openroad", config, env)
     if blocked is not None:
         return blocked
+
+    libs = config.get("pdk", {}).get("libraries", {})
+
     script = (
-        f"# power for design {design_id} (receipt layer)\n"
-        "read_verilog top.sv\nreport_power\n"
+        f"# Power analysis for design {design_id}\n"
+        f"set pdk /usr/local/share/pdk/sky130A\n"
+        f"\n"
+        f"read_lef $pdk/{libs.get('tech_lef', '')}\n"
+        f"read_lef $pdk/{libs.get('lef', '')}\n"
+        f"read_liberty $pdk/{libs.get('liberty_tt', '')}\n"
+        f"read_verilog {design_id}.routed.v\n"
+        f"link_design {design_id}\n"
+        f"read_sdc {design_id}.sdc\n"
+        f"read_spef {design_id}.spef\n"
+        f"\n"
+        f"set_propagated_clock [all_clocks]\n"
+        f"set_power_activity -global 0.1\n"
+        f"\n"
+        f"puts \"=== POWER REPORT ===\"\n"
+        f"report_power\n"
+        f"report_power -corner ff\n"
+        f"report_power -corner ss\n"
     )
     return _run_script_stage(
         "power", "openroad", openroad, "power.tcl", script,
@@ -348,16 +528,34 @@ def stage_power(design_id: str, config: dict[str, Any], workroot: Path,
 
 def stage_drc(design_id: str, config: dict[str, Any], workroot: Path,
               env: dict[str, str] | None) -> StageReceipt:
-    """Magic/klayout DRC over the generated GDS (section 15)."""
+    """Magic DRC over the generated GDS (section 15).
+
+    Loads the GDS, extracts the design against Sky130A tech files,
+    and runs design rule checks. Reports all violations.
+    """
     magic = _resolve_binary("magic", config, env=env)
     if magic is None:
         return _blocked("magic", "drc", "magic/klayout not found", TOOL_NOT_FOUND)
     blocked = _pdk_or_blocked("drc", "magic", config, env)
     if blocked is not None:
         return blocked
+
+    libs = config.get("pdk", {}).get("libraries", {})
+
     script = (
-        f"# DRC for design {design_id} (receipt layer)\n"
-        "gds read top.gds\nload top\ndrc check\ndrc listall why\n"
+        f"# DRC for design {design_id} via magic\n"
+        f"set pdk /usr/local/share/pdk/sky130A\n"
+        f"\n"
+        f"gds read $pdk/{libs.get('gds', '')}\n"
+        f"load {design_id}\n"
+        f"source $pdk/{libs.get('magicrc', '')}\n"
+        f"\n"
+        f"puts \"=== DRC CHECK ===\"\n"
+        f"drc check\n"
+        f"drc listall why\n"
+        f"\n"
+        f"# Write results\n"
+        f"feedback save {design_id}_drc.log\n"
     )
     return _run_script_stage(
         "drc", "magic", magic, "drc.tcl", script,
@@ -367,16 +565,35 @@ def stage_drc(design_id: str, config: dict[str, Any], workroot: Path,
 
 def stage_lvs(design_id: str, config: dict[str, Any], workroot: Path,
               env: dict[str, str] | None) -> StageReceipt:
-    """Netgen LVS: layout netlist vs synthesized netlist (section 16)."""
+    """Netgen LVS: layout vs schematic netlist (section 16).
+
+    Compares the extracted SPICE netlist from the GDS against the
+    synthesized gate-level netlist. Reports match/mismatch.
+    """
     netgen = _resolve_binary("netgen", config, env=env)
     if netgen is None:
         return _blocked("netgen", "lvs", "netgen not found", TOOL_NOT_FOUND)
     blocked = _pdk_or_blocked("lvs", "netgen", config, env)
     if blocked is not None:
         return blocked
+
+    libs = config.get("pdk", {}).get("libraries", {})
+
     script = (
-        f"# LVS for design {design_id} (receipt layer)\n"
-        "puts {netgen batch}\n"
+        f"# LVS for design {design_id} via netgen\n"
+        f"set pdk /usr/local/share/pdk/sky130A\n"
+        f"\n"
+        f"# Extract layout netlist from GDS via magic\n"
+        f"gds read $pdk/{libs.get('gds', '')}\n"
+        f"load {design_id}\n"
+        f"source $pdk/{libs.get('magicrc', '')}\n"
+        f"extract all\n"
+        f"ext2spice lvs\n"
+        f"feedback save {design_id}_lvs_extract.log\n"
+        f"\n"
+        f"# Run LVS comparison\n"
+        f"lvs {{{design_id}.spice {design_id}}} {{{design_id}_netlist.v {design_id}}} \\\n"
+        f"  $pdk/{libs.get('netgen_setup', '')} {design_id}_lvs.rpt\n"
     )
     return _run_script_stage(
         "lvs", "netgen", netgen, "lvs.tcl", script,

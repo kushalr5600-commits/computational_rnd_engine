@@ -10,6 +10,7 @@ pdk:
   open_source: true
   standard_cell_library: sky130_fd_sc_hd
   metal_stack: [li1, met1, met2, met3, met4, met5]
+  site_name: unithd
   # Identity of the installed PDK — null until eda-doctor verifies it.
   version:
     name: "open_pdks sky130A"
@@ -17,9 +18,31 @@ pdk:
     tree_hash: null
   corners: [tt_1V80_25C, ss_1V60_-40C, ff_1V95_100C]
   libraries:
-    lef: "libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.tlef"
+    lef: "libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef"
+    tech_lef: "libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef"
     liberty: "libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib"
+    liberty_tt: "libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib"
+    liberty_ff: "libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__ff_017C_1v95.lib"
+    liberty_ss: "libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__ss_017C_0v72.lib"
     gds: "libs.ref/sky130_fd_sc_hd/gds/sky130_fd_sc_hd.gds"
+    spice: "libs.ref/sky130_fd_sc_hd/spice/sky130_fd_sc_hd.spice"
     magic: "libs.tech/magic/sky130A.tcl"
+    magicrc: "libs.tech/magic/sky130A.tcl"
     netgen: "libs.tech/netgen"
+    netgen_setup: "libs.tech/netgen/setup.tcl"
     klayout: "libs.tech/klayout"
+    pdn: "libs.tech/openroad/sky130_fd_sc_hd/pdn.cfg"
+    tracks: "libs.tech/openroad/sky130_fd_sc_hd/tracks.info"
+    rcx_rules: "libs.tech/openroad/sky130_fd_sc_hd/sky130hd.rcx_rules"
+  # Physical design parameters
+  physical:
+    clock_buffer: sky130_fd_sc_hd__clkbuf_1
+    clock_buffer_list: sky130_fd_sc_hd__clkbuf_1
+    tapcell_master: sky130_fd_sc_hd__tapvpwrvgnd_1
+    filler_prefix: sky130_fd_sc_hd__fill_*
+    dont_use: [sky130_fd_sc_hd__probe_p_*, sky130_fd_sc_hd__probec_p_*]
+    tap_distance: 14
+    placement_padding: 2
+    global_routing_adjustment: 0.5
+    global_routing_signal_layers: met1-met5
+    global_routing_clock_layers: met3-met5
