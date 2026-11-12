@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420" role="img" aria-label="QUANTUMVAULT">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#22D3EE" fill-opacity="0.9"/>
+    </marker>
+    <linearGradient id="boxg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#151E33"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="420" fill="#0B0F19"/>
+  <rect x="0.5" y="0.5" width="1279" height="419" fill="none" stroke="#1F2A44"/>
+  <text x="40" y="44" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="13" letter-spacing="2.5">QUANTUMVAULT</text>
+  <text x="40" y="68" fill="#E5E7EB" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" font-weight="700">Post-quantum hardware security - ML-KEM-768 in RTL</text>
+  
+  <rect x="60" y="120" width="200" height="60" rx="10" fill="url(#boxg)" stroke="#A78BFA" stroke-opacity="0.55" stroke-width="1.3"/><text x="160.0" y="146.0" fill="#E5E7EB" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">K / e-vectors</text><text x="160.0" y="165.0" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="11" text-anchor="middle" dominant-baseline="middle">seed -&gt; XOF expand</text>
+  <rect x="340" y="120" width="220" height="60" rx="10" fill="url(#boxg)" stroke="#22D3EE" stroke-opacity="0.55" stroke-width="1.3"/><text x="450.0" y="146.0" fill="#E5E7EB" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">NTT / base-mul</text><text x="450.0" y="165.0" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="11" text-anchor="middle" dominant-baseline="middle">FIPS 203 section 4.3</text>
+  <rect x="640" y="120" width="200" height="60" rx="10" fill="url(#boxg)" stroke="#22D3EE" stroke-opacity="0.55" stroke-width="1.3"/><text x="740.0" y="146.0" fill="#E5E7EB" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">KeyGen FSM</text><text x="740.0" y="165.0" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="11" text-anchor="middle" dominant-baseline="middle">s -&gt; e -&gt; t = A*s + e</text>
+  <rect x="920" y="120" width="200" height="60" rx="10" fill="url(#boxg)" stroke="#3B82F6" stroke-opacity="0.55" stroke-width="1.3"/><text x="1020.0" y="146.0" fill="#E5E7EB" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">Key encode</text><text x="1020.0" y="165.0" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="11" text-anchor="middle" dominant-baseline="middle">byte-pack, little-endian</text>
+  <line x1="260" y1="150" x2="338" y2="150" stroke="#22D3EE" stroke-width="1.8" stroke-opacity="0.85" marker-end="url(#arr)"/>
+  <line x1="560" y1="150" x2="638" y2="150" stroke="#22D3EE" stroke-width="1.8" stroke-opacity="0.85" marker-end="url(#arr)"/>
+  <line x1="840" y1="150" x2="918" y2="150" stroke="#22D3EE" stroke-width="1.8" stroke-opacity="0.85" marker-end="url(#arr)"/>
+  <text x="70" y="250" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="12">primitives: keccak_f.sv, shake_sha3.sv, ntt_butterfly.sv, ntt_core.sv, basemultiply.sv, ntt_sample.sv, cbd_sampler.sv, key_encode.sv</text>
+  <text x="70" y="278" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="12">status (per project logs): ek 1184/1184 bytes, dk 2400/2400 bytes, 3586/3586 checks passed</text>
+  <text x="70" y="306" fill="#8B94A7" font-family="ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace" font-size="11.5">FIPS 203 forward path (ML-KEM-768) plus FIPS 204 (ML-DSA) building blocks in gate directories</text>
+
+</svg>
